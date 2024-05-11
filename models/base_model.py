@@ -6,6 +6,7 @@ serve as the base of ou model.
 
 import uuid
 from datetime import datetime
+from models import storage
 
 class BaseModel:
     def __init__(self, *args, **kwargs):
@@ -25,6 +26,9 @@ class BaseModel:
             self.created_at = datetime.now()  # Setting created_at to the current datetime
             self.updated_at = datetime.now()  # Setting updated_at to the current datetime
 
+            # Add the new instance to storage
+            storage.new(self)
+
     def __str__(self):
         """
         Returns a string representation of the BaseModel object. __str__: should print: [<class name>] (<self.id>) <self.__dict__>
@@ -36,6 +40,9 @@ class BaseModel:
         Updating the updated_at attribute with the current datetime. Whenever save method is called.
         """
         self.updated_at = datetime.now()
+
+        # Save changes to storage
+        storage.save()
 
     def to_dict(self):
         """
