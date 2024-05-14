@@ -64,6 +64,35 @@ class HBNBCommand(cmd.Cmd):
             return
         print([str(obj) for obj in storage.all().values()])  # Print string representations of all instances
 
+    def do_update(self, arg):
+        """Updates an instance based on the class name and id"""
+        args = arg.split()  # Split the arguments provided by the user
+        if not args:  # Check if no arguments are provided
+            print("** class name missing **")
+            return
+        if args[0] not in storage.classes():  # Check if class name doesn't exist
+            print("** class doesn't exist **")
+            return
+        if len(args) < 2:  # Check if instance id is missing
+            print("** instance id missing **")
+            return
+        key = args[0] + '.' + args[1]  # Create key to check instance existence
+        if key not in storage.all():  # Check if instance doesn't exist
+            print("** no instance found **")
+            return
+        if len(args) < 3:  # Check if attribute name is missing
+            print("** attribute name missing **")
+            return
+        if len(args) < 4:  # Check if value is missing
+            print("** value missing **")
+            return
+        try:
+            value = eval(args[3])  # Evaluate the provided value
+        except:
+            value = args[3]  # If evaluation fails, assign value as string
+        setattr(storage.all()[key], args[2], value)  # Set attribute value
+        storage.save()
+
     
     def do_quit(self, arg):
         """Quit command to exit the program."""
@@ -79,4 +108,3 @@ class HBNBCommand(cmd.Cmd):
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
-
