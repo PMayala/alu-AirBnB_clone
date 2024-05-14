@@ -55,6 +55,15 @@ class HBNBCommand(cmd.Cmd):
             return
         del storage.all()[key]  # Delete the instance from storage
         storage.save()  # Save the changes to the JSON file
+
+    def do_all(self, arg):
+        """Prints all string representation of all instances"""
+        args = arg.split()
+        if args and args[0] not in storage.classes():
+            print("** class doesn't exist **")  # Handle non-existent class names
+            return
+        print([str(obj) for obj in storage.all().values()])  # Print string representations of all instances
+
     
     def do_quit(self, arg):
         """Quit command to exit the program."""
