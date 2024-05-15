@@ -5,6 +5,8 @@ Module for serializing and deserializing data
 
 import json
 import os.path
+from models.user import User
+from models.base_model import BaseModel
 
 class FileStorage:
     # Path to the JSON file
@@ -26,7 +28,7 @@ class FileStorage:
         # Convert objects to dictionary format
         json_dict = {key: obj.to_dict() for key, obj in self.__objects.items()}
         # Write dictionary to JSON file
-        with open(self.__file_path, 'w') as f:
+        with open(self.__file_path, 'w', encoding="utf-8") as f:
             json.dump(json_dict, f)
 
     def reload(self):
