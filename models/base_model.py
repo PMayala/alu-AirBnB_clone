@@ -1,85 +1,42 @@
 #!/usr/bin/python3
-"""
-This file defines  the BaseModel class which will
-serve as the base of ou model.
-"""
+""" Base Model Module """
 
-import uuid
+from uuid import uuid4
 from datetime import datetime
-from models import storage
+import models
+
 
 class BaseModel:
-    def __init__(self, *args, **kwargs):
-        # If keyword arguments (kwargs) are provided
-        if kwargs:
-            for key, value in kwargs.items(): # We iterate over each key-value pair in kwargs
-                if key != '__class__': # skip '__class__' key
-                    if key in ['created_at', 'updated_at']:
-                        # If the key is 'created_at' or 'updated_at', convert value to datetime object
-                        value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%f')
-                        # Set attribute of self with key as attribute name and value as attribute value
-                    setattr(self, key, value)
-        # If no kwargs are provided, initialize instance attributes
-        else:
-            
-            self.id = str(uuid.uuid4())  # Generating a unique id and convert it to a string
-            self.created_at = datetime.now()  # Setting created_at to the current datetime
-            self.updated_at = datetime.now()  # Setting updated_at to the current datetime
+    """A BaseModel class"""
 
-            # Add the new instance to storage
-            storage.new(self)
+    def __init__(self, *args, **kwargs):
+        """Initialize class base"""
+        if kwargs:
+            for keys, val in kwargs.items():
+                if keys != "__class__":
+                    if keys == "created_at" or keys == "updated_at":
+                        val = datetime.strptime(val, "%Y-%m-%dT%H:%M:%S.%f")
+                    setattr(self, keys, val)
+        else:
+            self.id = str(uuid4())
+            self.created_at = datetime.now()
+            self.updated_at = self.created_at
+            models.storage.new(self)
 
     def __str__(self):
-        """
-        Returns a string representation of the BaseModel object. __str__: should print: [<class name>] (<self.id>) <self.__dict__>
-        """
-        return "[{}] ({}) {}".format(self.__class__.__name__, self.id, self.__dict__)
+        """print the class name, id and directory"""
+        return ("[{}] ({}) {}".format(self.__class__.__name__,
+                                      self.id, self.__dict__))
 
     def save(self):
-        """
-        Updating the updated_at attribute with the current datetime. Whenever save method is called.
-        """
+        """updates the public instance attribute with the current datetime"""
         self.updated_at = datetime.now()
-
-        # Save changes to storage
-        storage.save()
+        models.storage.save()
 
     def to_dict(self):
-        """
-        Returns a dictionary representation of the BaseModel object. In other words this process is called Serialization.
-        """
-        # Creation of a dictionary containing all instance attributes
-        obj_dict = self.__dict__.copy()
-
-        # Adding __class__ key with the class name to the dictionary
-        obj_dict['__class__'] = self.__class__.__name__
-
-        # Convert created_at and updated_at to ISO format strings. We convert the instance(object) into a string for better storage...
-        obj_dict['created_at'] = self.created_at.isoformat()
-        obj_dict['updated_at'] = self.updated_at.isoformat()
-
-        return obj_dict
-
-# Example usage:
-if __name__ == "__main__":
-    my_model = BaseModel()
-    my_model.name = "My_First_Model"
-    my_model.my_number = 89
-    print(my_model.id)
-    print(my_model)
-    print(type(my_model.created_at))
-    print("--")
-    my_model_json = my_model.to_dict()
-    print(my_model_json)
-    print("JSON of my_model:")
-    for key in my_model_json.keys():
-        print("\t{}: ({}) - {}".format(key, type(my_model_json[key]), my_model_json[key]))
-
-    print("--")
-    my_new_model = BaseModel(**my_model_json)
-    print(my_new_model.id)
-    print(my_new_model)
-    print(type(my_new_model.created_at))
-
-    print("--")
-    print(my_model is my_new_model)
+        """returns a dictionary """
+        newbase = self.__dict__.copy()
+        newbase["__class__"] = self.__class__.__name__
+        newbase["created_at"] = self.created_at.isoformat()
+        newbase["updated_at"] = self.updated_at.isoformat()
+        return newbase
