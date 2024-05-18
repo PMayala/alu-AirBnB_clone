@@ -1,49 +1,67 @@
 #!/usr/bin/python3
-""" File Storage Module"""
-
+"""
+Module for serializing and deserializing data
+"""
 import json
-import os.path
+import os
 from models.base_model import BaseModel
-from models.amenity import Amenity
-from models.city import City
-from models.place import Place
-from models.state import State
 from models.user import User
+from models.amenity import Amenity
+from models.place import Place
 from models.review import Review
-
-classes = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
-           "Place": Place, "Review": Review, "State": State, "User": User}
+from models.state import State
+from models.city import City
 
 
 class FileStorage:
-    """Class for Serializes and Deserializes"""
-    def __init__(self):
-        """string - path to the JSON file"""
-        self.__file_path = 'file.json'
-        """dictionary - empty but will store all objects by <class name>.id"""
-        self.__objects = {}
-
-    def all(self):
-        """returns the dict __objects"""
-        return self.__objects
+    """
+    FileStorage class for storing, serializing and deserializing data
+    """
+    __file_path = "file.json"
+    __objects = {}
 
     def new(self, obj):
-        """sets in __objects, key classname.id val= obj"""
-        main_key = obj.__class__.__name__ + '.' + obj.id
-        self.__objects.update({main_key: obj})
+        """
+        Sets an object in the __objects dictionary with a key of
+        <obj class name>.id.
+        """
+        obj_cls_name = obj.__class__.__name__
+        key = "{}.{}".format(obj_cls_name, obj.id)
+        FileStorage.__objects[key] = obj
+
+    def all(self):
+        """
+        Returns the __objects dictionary.
+        It provides access to all the stored objects.
+        """
+        return FileStorage.__objects
 
     def save(self):
-        """serializes __objects to JSON"""
-        newdict = {}
-        with open(self.__file_path, 'w', encoding="UTF-8") as filejson:
-            for key, value in self.__objects.items():
-                newdict[key] = value.to_dict()  # json.dump(newdict, filejson)
-            filejson.write(json.dumps(newdict))
+        """
+        Serializes the __objects dictionary into
+        JSON format and saves it to the file specified by __file_path.
+        """
+        all_objs = FileStorage.__objects
+        obj_dict = {}
+
+        for obj in all_objs.keys():
+            obj_dict[obj] = all_objs[obj].to_dict()
+
+        with open(FileStorage.__file_path, "w", encoding="utf-8") as file:
+            json.dump(obj_dict, file)
 
     def reload(self):
-        """deserializes the JSON file to __objects"""
-        if os.path.isfile(self.__file_path):
-            with open(self.__file_path) as json_f:
-                othrdict_objs = json.load(json_f)
-            for key, val in othrdict_objs.items():
-                self.__objects[key] = eval(val["__class__"])(**val)
+        """
+        This method deserializes the JSON file
+        """
+        if os.path.isfile(FileStorage.__file_path):
+            with open(FileStorage.__file_path, "r", encoding="utf-8") as file:
+                try:
+                    obj_dict = json.load(file)
+                    for key, value in obj_dict.items():
+                        class_name, obj_id = key.split('.')
+                        cls = eval(class_name)
+                        instance = cls(**value)
+                        FileStorage.__objects[key] = instance
+                except Exception:
+                    pass
